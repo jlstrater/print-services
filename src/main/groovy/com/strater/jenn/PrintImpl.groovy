@@ -226,7 +226,7 @@ class PrintImpl implements Print {
         Sql db = Database.db
         GroovyRowResult row = db.firstRow('select password from users where username=:username', [username: username])
 
-        return new Crypto().compare(username, password, row?.get('password')?.toString())
+        return Crypto.compare(username, password, row?.get('password')?.toString())
     }
 
     String authenticate(String sessionId) {

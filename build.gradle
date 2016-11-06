@@ -11,9 +11,10 @@
 apply plugin: 'groovy'
 apply plugin: 'application'
 apply plugin: 'codenarc'
+apply plugin: 'idea'
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
 
 // In this section you declare where to find the dependencies of your project
 repositories {
@@ -51,4 +52,3 @@ codenarcTest {
 }
 
 mainClassName = 'com.strater.jenn.Server'
-

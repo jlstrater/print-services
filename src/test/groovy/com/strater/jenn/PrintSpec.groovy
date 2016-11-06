@@ -7,7 +7,7 @@ import spock.lang.Unroll
 import java.rmi.Naming
 
 @Unroll
-class PrintImplSpec extends Specification {
+class PrintSpec extends Specification {
 
     @Shared
     Print printService
@@ -45,6 +45,14 @@ class PrintImplSpec extends Specification {
 
         then:
         response.isInteger()
+    }
+
+    def 'attempt to add print job with bad credentials'() {
+        when:
+        String response = printService.print('file.txt', 'myPrinter', 'notFound', 'anything')
+
+        then:
+        response.toInteger() == -1
     }
 
     def 'test empty queue response with credentials'() {

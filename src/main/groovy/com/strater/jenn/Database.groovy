@@ -18,11 +18,11 @@ class Database {
         sql.execute('create table users (id int, username varchar , password varchar, sessionId varchar, ' +
                 'ttl timestamp )')
         sql.execute('insert into users (id, username, password) values(:id, :username, :password)',
-                [id: 1, username: 'jenn', password: new Crypto().encrypt('jenn', 'supersecret123')])
+                [id: 1, username: 'jenn', password: Crypto.encrypt('jenn', 'supersecret123')])
         sql.execute('insert into users (id, username, password) values(:id, :username, :password)',
-                [id: 1, username: 'admin', password: new Crypto().encrypt('admin', 'petsname5')])
+                [id: 1, username: 'admin', password: Crypto.encrypt('admin', 'petsname5')])
         sql.execute('insert into users (id, username, password) values(:id, :username, :password)',
-                [id: 1, username: 'test', password: new Crypto().encrypt('test', 'test123')])
+                [id: 1, username: 'test', password: Crypto.encrypt('test', 'test123')])
 
         List<GroovyRowResult> result = sql.rows ('select username from users')
         log.info 'created users table with users: ' + result*.get('username').toString()
