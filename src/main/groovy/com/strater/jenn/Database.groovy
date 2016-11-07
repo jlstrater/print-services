@@ -16,7 +16,7 @@ class Database {
         sql.execute('drop table if exists users')
 
         sql.execute('create table users (id int, username varchar , password varchar, sessionId varchar, ' +
-                'ttl timestamp )')
+                'expiration timestamp )')
         sql.execute('insert into users (id, username, password) values(:id, :username, :password)',
                 [id: 1, username: 'jenn', password: Crypto.encrypt('jenn', 'supersecret123')])
         sql.execute('insert into users (id, username, password) values(:id, :username, :password)',

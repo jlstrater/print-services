@@ -231,7 +231,8 @@ class PrintImpl implements Print {
 
     String authenticate(String sessionId) {
         Sql db = Database.db
-        GroovyRowResult row = db.firstRow('select username from users where sessionId=:sessionId and ttl >= :now',
+        GroovyRowResult row = db.firstRow('select username from users where sessionId=:sessionId and ' +
+                'expiration >= :now',
                 [sessionId: sessionId, now: new Timestamp(System.currentTimeMillis())])
         return row?.get('username')
     }
@@ -240,10 +241,10 @@ class PrintImpl implements Print {
         if (authenticate(username, password)) {
             log.info 'user ' + username + ' started a new session'
             String sessionId = Crypto.generateSessionId()
-            Timestamp ttl = new Timestamp(System.currentTimeMillis() + 1800 * 1000)
-            Database.db.executeUpdate('update users set (sessionId, ttl) = (:sessionId, :ttl) ' +
+            Timestamp expiration = new Timestamp(System.currentTimeMillis() + 1800 * 1000)
+            Database.db.executeUpdate('update users set (sessionId, expiration) = (:sessionId, :expiration) ' +
                     'where username = :username',
-                    [username: username, sessionId: sessionId, ttl: ttl])
+                    [username: username, sessionId: sessionId, expiration: expiration])
             return sessionId
         }
         return 'Invalid Credentials'
