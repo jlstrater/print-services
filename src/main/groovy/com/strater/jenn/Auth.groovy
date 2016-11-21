@@ -93,6 +93,6 @@ class Auth {
                 allPermissions.addAll(getRbacPerimssions(it.get('inheritsFrom'), allPermissions))
             }
         }
-        return allPermissions
+        return allPermissions.unique()
     }
 }

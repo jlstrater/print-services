@@ -15,7 +15,7 @@ class PrintSpec extends Specification {
     @Shared
     String sessionId
 
-    static String username = 'unitTest'
+    static String username = 'testAdmin'
     static String password = 'test123'
 
     def setupSpec() {
@@ -36,7 +36,7 @@ class PrintSpec extends Specification {
         String response = printService.print('file.txt', 'myPrinter', username, password, 1)
 
         then:
-        response.isInteger()
+        response.toInteger() == 1
     }
 
     def 'add print job with sessionId'() {
@@ -44,7 +44,7 @@ class PrintSpec extends Specification {
         String response = printService.print('file.txt', 'myPrinter', sessionId, 1)
 
         then:
-        response.isInteger()
+        response.toInteger() == 1
     }
 
     def 'attempt to add print job with bad credentials'() {

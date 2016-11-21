@@ -46,7 +46,7 @@ class PrintAuthorizationSpec extends Specification {
         String response = printService.print('file.txt', 'myPrinter', username, password, mechanismId)
 
         then:
-        response.isInteger()
+        response.toInteger() == 1
 
         where:
         username | password | mechanismId | mechanismName
@@ -279,5 +279,55 @@ class PrintAuthorizationSpec extends Specification {
         userUsername | userPassword | 2 | 'RBAC'
         powerUsername | powerUserPassword | 1 | 'ACL'
         powerUsername | powerUserPassword | 2 | 'RBAC'
+    }
+
+    def 'test removing user roles but keep authentication'() {
+        setup:
+        Database.db.execute('update users set role=:role where username=:username',
+                [role: 'TERMINATED', username: 'bobTheBuilder'])
+
+        when:
+        String response = printService.restart(technicianUsername, technicianPassword, 1)
+
+        then:
+        response == 'Invalid Credentials'
+    }
+
+    def 'test adding new user with existing role'() {
+        setup:
+        String insert = 'insert into users (id, username, password, role) values(:id, :username, :password, :role)'
+        Database.db.execute(insert, [id: 6, username: 'george', password: Crypto.encrypt('george', 'nightCrewRulez'),
+                                     role: 'TECHNICIAN'])
+
+        when:
+        String response = printService.restart('george', technicianPassword, 1)
+
+        then:
+        response == 'Success'
+    }
+
+    def 'test promoting bob to an admin'() {
+        setup:
+        Database.db.execute('update users set role=:role where username=:username',
+                [role: 'ADMIN', username: 'bobTheBuilder'])
+
+        when:
+        String response = printService.print('nightshiftstuff.txt', 'myPrinter', technicianUsername,
+                technicianPassword, 1)
+
+        then:
+        response.toInteger() == 1
+    }
+
+    def 'test demoting power user to regular user'() {
+        setup:
+        Database.db.execute('update users set role=:role where username=:username',
+                [role: 'USER', username: 'powerUser1'])
+
+        when:
+        String response = printService.restart(powerUsername, powerUserPassword, 1)
+
+        then:
+        response == 'Invalid Credentials'
     }
 }

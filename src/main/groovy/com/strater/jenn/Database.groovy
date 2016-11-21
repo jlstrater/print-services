@@ -27,7 +27,7 @@ class Database {
                 'expiration timestamp, role varchar NOT NULL )')
         db.withBatch {
             String insert = 'insert into users (id, username, password, role) values(:id, :username, :password, :role)'
-            db.execute(insert, [id: 1, username: 'unitTest', password: Crypto.encrypt('unitTest', 'test123'),
+            db.execute(insert, [id: 1, username: 'testAdmin', password: Crypto.encrypt('testAdmin', 'test123'),
                                  role: 'ADMIN'])
             db.execute(insert, [id: 2, username: 'bobTheBuilder', password:
                     Crypto.encrypt('bobTheBuilder', 'nightCrewRulez'), role: 'TECHNICIAN'])
