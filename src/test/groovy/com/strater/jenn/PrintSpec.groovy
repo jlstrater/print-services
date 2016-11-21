@@ -15,7 +15,7 @@ class PrintSpec extends Specification {
     @Shared
     String sessionId
 
-    static String username = 'test'
+    static String username = 'unitTest'
     static String password = 'test123'
 
     def setupSpec() {
@@ -28,12 +28,12 @@ class PrintSpec extends Specification {
     }
 
     def setup() {
-        printService.restart(sessionId)
+        printService.restart(sessionId, 1)
     }
 
     def 'add print job with credentials'() {
         when:
-        String response = printService.print('file.txt', 'myPrinter', username, password)
+        String response = printService.print('file.txt', 'myPrinter', username, password, 1)
 
         then:
         response.isInteger()
@@ -41,7 +41,7 @@ class PrintSpec extends Specification {
 
     def 'add print job with sessionId'() {
         when:
-        String response = printService.print('file.txt', 'myPrinter', sessionId)
+        String response = printService.print('file.txt', 'myPrinter', sessionId, 1)
 
         then:
         response.isInteger()
@@ -49,7 +49,7 @@ class PrintSpec extends Specification {
 
     def 'attempt to add print job with bad credentials'() {
         when:
-        String response = printService.print('file.txt', 'myPrinter', 'notFound', 'anything')
+        String response = printService.print('file.txt', 'myPrinter', 'notFound', 'anything', 1)
 
         then:
         response.toInteger() == -1
@@ -57,7 +57,7 @@ class PrintSpec extends Specification {
 
     def 'test empty queue response with credentials'() {
         when:
-        String response = printService.queue(username, password)
+        String response = printService.queue(username, password, 1)
 
         then:
         !response
@@ -65,7 +65,7 @@ class PrintSpec extends Specification {
 
     def 'test empty queue response with sessionId'() {
         when:
-        String response = printService.queue(sessionId)
+        String response = printService.queue(sessionId, 1)
 
         then:
         !response
@@ -73,10 +73,10 @@ class PrintSpec extends Specification {
 
     def 'test nonempty queue response with credentials'() {
         setup:
-        printService.print('test.txt', 'test suite', sessionId)
+        printService.print('test.txt', 'test suite', sessionId, 1)
 
         when:
-        String response = printService.queue(username, password)
+        String response = printService.queue(username, password, 1)
 
         then:
         response == '<1> <test.txt>'
@@ -84,10 +84,10 @@ class PrintSpec extends Specification {
 
     def 'test nonempty queue response with sessionId'() {
         setup:
-        printService.print('test.txt', 'test suite', sessionId)
+        printService.print('test.txt', 'test suite', sessionId, 1)
 
         when:
-        String response = printService.queue(sessionId)
+        String response = printService.queue(sessionId, 1)
 
         then:
         response == '<1> <test.txt>'
@@ -95,52 +95,52 @@ class PrintSpec extends Specification {
 
     def 'test queue with multiple jobs'() {
         setup:
-        printService.print('test.txt', 'test suite', sessionId)
-        printService.print('test2.txt', 'test suite', sessionId)
+        printService.print('test.txt', 'test suite', sessionId, 1)
+        printService.print('test2.txt', 'test suite', sessionId, 1)
 
         when:
-        String response = printService.queue(sessionId)
+        String response = printService.queue(sessionId, 1)
         then:
         response == '''<1> <test.txt>\n<2> <test2.txt>'''
     }
 
     def 'test sending a job to the top of the queue with sessionId'() {
         setup: 'setup 3 jobs'
-        printService.print('test.txt', 'test suite', sessionId)
-        printService.print('test2.txt', 'test suite', sessionId)
-        printService.print('test3.txt', 'test suite', sessionId)
+        printService.print('test.txt', 'test suite', sessionId, 1)
+        printService.print('test2.txt', 'test suite', sessionId, 1)
+        printService.print('test3.txt', 'test suite', sessionId, 1)
 
         when: 'the third job is sent to the top of the queue'
-        String response = printService.topQueue(3, sessionId)
+        String response = printService.topQueue(3, sessionId, 1)
 
         then: 'the third job should appear at the top'
         response == 'Moved job number 3 to the top of the queue'
 
         and:
-        String newQueue = printService.queue(sessionId)
+        String newQueue = printService.queue(sessionId, 1)
         newQueue.startsWith('<3> <test3.txt>')
     }
 
     def 'test sending a job to the top of the queue with credentials'() {
         setup: 'setup 3 jobs'
-        printService.print('test.txt', 'test suite', sessionId)
-        printService.print('test2.txt', 'test suite', sessionId)
-        printService.print('test3.txt', 'test suite', sessionId)
+        printService.print('test.txt', 'test suite', sessionId, 1)
+        printService.print('test2.txt', 'test suite', sessionId, 1)
+        printService.print('test3.txt', 'test suite', sessionId, 1)
 
         when: 'the third job is sent to the top of the queue'
-        String response = printService.topQueue(3, username, password)
+        String response = printService.topQueue(3, username, password, 1)
 
         then: 'the third job should appear at the top'
         response == 'Moved job number 3 to the top of the queue'
 
         and:
-        String newQueue = printService.queue(sessionId)
+        String newQueue = printService.queue(sessionId, 1)
         newQueue.startsWith('<3> <test3.txt>')
     }
 
     def 'test the mocked start method invokation with credentials'() {
         when:
-        String response = printService.start(username, password)
+        String response = printService.start(username, password, 1)
 
         then:
         response == 'Success'
@@ -148,7 +148,7 @@ class PrintSpec extends Specification {
 
     def 'test the mocked start method invokation with sessionId'() {
         when:
-        String response = printService.start(sessionId)
+        String response = printService.start(sessionId, 1)
 
         then:
         response == 'Success'
@@ -156,7 +156,7 @@ class PrintSpec extends Specification {
 
     def 'test the mocked restart method invokation with credentials'() {
         when:
-        String response = printService.restart(username, password)
+        String response = printService.restart(username, password, 1)
 
         then:
         response == 'Success'
@@ -164,7 +164,7 @@ class PrintSpec extends Specification {
 
     def 'test the mocked restart method invokation with sessionId'() {
         when:
-        String response = printService.restart(sessionId)
+        String response = printService.restart(sessionId, 1)
 
         then:
         response == 'Success'
@@ -172,7 +172,7 @@ class PrintSpec extends Specification {
 
     def 'test the printer status response with credentials'() {
         when:
-        String response = printService.status(username, password)
+        String response = printService.status(username, password, 1)
 
         then:
         response == 'Ready'
@@ -180,7 +180,7 @@ class PrintSpec extends Specification {
 
     def 'test the printer status response with sessionId'() {
         when:
-        String response = printService.status(sessionId)
+        String response = printService.status(sessionId, 1)
 
         then:
         response == 'Ready'
@@ -188,7 +188,7 @@ class PrintSpec extends Specification {
 
     def 'test setting a config param when varname is #varName and value is #value'() {
         setup:
-        String response = printService.setConfig(varName, value, sessionId)
+        String response = printService.setConfig(varName, value, sessionId, 1)
 
         expect:
         response == expected
@@ -203,7 +203,7 @@ class PrintSpec extends Specification {
 
     def 'test reading a config paramter when #varName'() {
         setup:
-        String response = printService.readConfig(varName, sessionId)
+        String response = printService.readConfig(varName, sessionId, 1)
 
         expect:
         !response
@@ -214,10 +214,10 @@ class PrintSpec extends Specification {
 
     def 'test reading a config parameter when it exists'() {
         setup:
-        printService.setConfig('myVar', 'myVal', sessionId)
+        printService.setConfig('myVar', 'myVal', sessionId, 1)
 
         when:
-        String response = printService.readConfig('myVar', sessionId)
+        String response = printService.readConfig('myVar', sessionId, 1)
 
         then:
         response == 'myVal'
@@ -225,7 +225,7 @@ class PrintSpec extends Specification {
 
     def 'test session token creation for good credentials'() {
         when:
-        String response = printService.startSession('test', 'test123')
+        String response = printService.startSession(username, password)
 
         then:
         response.size() == 64
@@ -254,13 +254,13 @@ class PrintSpec extends Specification {
         String newSessionId = printService.startSession(username, password)
 
         when:
-        String badResponse = printService.status(oldSessionId)
+        String badResponse = printService.status(oldSessionId, 1)
 
         then:
         badResponse == 'Invalid Credentials'
 
         when:
-        String goodResponse = printService.status(newSessionId)
+        String goodResponse = printService.status(newSessionId, 1)
 
         then:
         goodResponse == 'Ready'

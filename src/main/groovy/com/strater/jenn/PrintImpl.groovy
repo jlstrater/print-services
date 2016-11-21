@@ -1,13 +1,12 @@
 package com.strater.jenn
 
-import groovy.sql.GroovyRowResult
-import groovy.sql.Sql
 import groovy.util.logging.Slf4j
 import java.rmi.RemoteException
 import java.sql.Timestamp
 
 @Slf4j
 class PrintImpl implements Print {
+    Auth auth = new Auth()
 
     String defaultErrorMessage = 'Invalid Credentials'
 
@@ -16,16 +15,21 @@ class PrintImpl implements Print {
     String printerStatus = 'Ready'
     Integer jobNumber = 1
 
-    Integer print(String filename, String printer, String username, String password) {
-        if (authenticate(username, password)) {
+    Map authorizationMechanisms = [
+            1: 'authenticateAndAuthorizeWithACL',
+            2: 'authenticateAndAuthorizeWithRbac'
+    ]
+
+    Integer print(String filename, String printer, String username, String password, Integer authorizationMechanism) {
+        if (auth."${authorizationMechanisms[authorizationMechanism]}"(username, password, 'print')) {
             log.info 'user ' + username + ' invoked print'
             return print(filename, printer)
         }
         return -1
     }
 
-    Integer print(String filename, String printer, String sessionId) {
-        String username = authenticate(sessionId)
+    Integer print(String filename, String printer, String sessionId, Integer authorizationMechanism) {
+        String username = auth."${authorizationMechanisms[authorizationMechanism]}"(sessionId, 'print')
         if (username) {
             log.info 'user ' + username + ' invoked print'
             return print(filename, printer)
@@ -42,16 +46,16 @@ class PrintImpl implements Print {
         return job.jobNumber
     }
 
-    String queue(String username, String password) {
-        if (authenticate(username, password)) {
+    String queue(String username, String password, Integer authorizationMechanism) {
+        if (auth."${authorizationMechanisms[authorizationMechanism]}"(username, password, 'queue')) {
             log.info 'user ' + username + ' invoked queue'
             return queue()
         }
         return defaultErrorMessage
     }
 
-    String queue(String sessionId) {
-        String username = authenticate(sessionId)
+    String queue(String sessionId, Integer authorizationMechanism) {
+        String username = auth."${authorizationMechanisms[authorizationMechanism]}"(sessionId, 'queue')
         if (username) {
             log.info 'user ' + username + ' invoked queue'
             return queue()
@@ -68,16 +72,16 @@ class PrintImpl implements Print {
         output
     }
 
-    String topQueue(Integer job, String username, String password) {
-        if (authenticate(username, password)) {
+    String topQueue(Integer job, String username, String password, Integer authorizationMechanism) {
+        if (auth."${authorizationMechanisms[authorizationMechanism]}"(username, password, 'topQueue')) {
             log.info 'user ' + username + ' invoked topQueue'
             return topQueue(job)
         }
         return defaultErrorMessage
     }
 
-    String topQueue(Integer job, String sessionId) {
-        String username = authenticate(sessionId)
+    String topQueue(Integer job, String sessionId, Integer authorizationMechanism) {
+        String username = auth."${authorizationMechanisms[authorizationMechanism]}"(sessionId, 'topQueue')
         if (username) {
             log.info 'user ' + username + ' invoked topQueue'
             return topQueue(job)
@@ -94,8 +98,8 @@ class PrintImpl implements Print {
         return message
     }
 
-    String start(String username, String password) {
-        if (authenticate(username, password)) {
+    String start(String username, String password, Integer authorizationMechanism) {
+        if (auth."${authorizationMechanisms[authorizationMechanism]}"(username, password, 'start')) {
             log.info 'user ' + username + ' invoked start'
             return start()
         }
@@ -103,8 +107,8 @@ class PrintImpl implements Print {
 
     }
 
-    String start(String sessionId) {
-        String username = authenticate(sessionId)
+    String start(String sessionId, Integer authorizationMechanism) {
+        String username = auth."${authorizationMechanisms[authorizationMechanism]}"(sessionId, 'start')
         if (username) {
             log.info 'user ' + username + ' invoked start'
             return start()
@@ -118,16 +122,39 @@ class PrintImpl implements Print {
         return 'Success'
     }
 
-    String restart(String username, String password) {
-        if (authenticate(username, password)) {
+    String stop(String username, String password, Integer authorizationMechanism) {
+        if (auth."${authorizationMechanisms[authorizationMechanism]}"(username, password, 'stop')) {
+            log.info 'user ' + username + ' invoked stop'
+            return stop()
+        }
+        return defaultErrorMessage
+
+    }
+
+    String stop(String sessionId, Integer authorizationMechanism) {
+        String username = auth."${authorizationMechanisms[authorizationMechanism]}"(sessionId, 'stop')
+        if (username) {
+            log.info 'user ' + username + ' invoked stop'
+            return stop()
+        }
+        return defaultErrorMessage
+    }
+
+    String stop() throws RemoteException {
+        log.info 'Stopping Print Server'
+        return 'Success'
+    }
+
+    String restart(String username, String password, Integer authorizationMechanism) {
+        if (auth."${authorizationMechanisms[authorizationMechanism]}"(username, password, 'restart')) {
             log.info 'user ' + username + ' invoked restart'
             return restart()
         }
         return defaultErrorMessage
     }
 
-    String restart(String sessionId) {
-        String username = authenticate(sessionId)
+    String restart(String sessionId, Integer authorizationMechanism) {
+        String username = auth."${authorizationMechanisms[authorizationMechanism]}"(sessionId, 'restart')
         if (username) {
             log.info 'user ' + username + ' invoked restart'
             return restart()
@@ -143,16 +170,16 @@ class PrintImpl implements Print {
         return 'Success'
     }
 
-    String status(String username, String password) {
-        if (authenticate(username, password)) {
+    String status(String username, String password, Integer authorizationMechanism) {
+        if (auth."${authorizationMechanisms[authorizationMechanism]}"(username, password, 'status')) {
             log.info 'user ' + username + ' invoked printerStatus'
             return status()
         }
         return defaultErrorMessage
     }
 
-    String status(String sessionId) {
-        String username = authenticate(sessionId)
+    String status(String sessionId, Integer authorizationMechanism) {
+        String username = auth."${authorizationMechanisms[authorizationMechanism]}"(sessionId, 'status')
         if (username) {
             log.info 'user ' + username + ' invoked printerStatus'
             return status()
@@ -165,16 +192,16 @@ class PrintImpl implements Print {
         return printerStatus
     }
 
-    String readConfig(String parameter, String username, String password) {
-        if (authenticate(username, password)) {
+    String readConfig(String parameter, String username, String password, Integer authorizationMechanism) {
+        if (auth."${authorizationMechanisms[authorizationMechanism]}"(username, password, 'readConfig')) {
             log.info 'user ' + username + ' invoked readConfig'
             return readConfig(parameter)
         }
         return defaultErrorMessage
     }
 
-    String readConfig(String parameter, String sessionId) {
-        String username = authenticate(sessionId)
+    String readConfig(String parameter, String sessionId, Integer authorizationMechanism) {
+        String username = auth."${authorizationMechanisms[authorizationMechanism]}"(sessionId, 'readConfig')
         if (username) {
             log.info 'user ' + username + ' invoked readConfig'
             return readConfig(parameter)
@@ -188,16 +215,16 @@ class PrintImpl implements Print {
         return config[parameter]
     }
 
-    String setConfig(String parameter, String value, String username, String password) {
-        if (authenticate(username, password)) {
+    String setConfig(String parameter, String value, String username, String password, Integer authorizationMechanism) {
+        if (auth."${authorizationMechanisms[authorizationMechanism]}"(username, password, 'setConfig')) {
             log.info 'user ' + username + ' invoked setConfig'
             return setConfig(parameter, value)
         }
         return defaultErrorMessage
     }
 
-    String setConfig(String parameter, String value, String sessionId) {
-        String username = authenticate(sessionId)
+    String setConfig(String parameter, String value, String sessionId, Integer authorizationMechanism) {
+        String username = auth."${authorizationMechanisms[authorizationMechanism]}"(sessionId, 'setConfig')
         if (username) {
             log.info 'user ' + username + ' invoked setConfig'
             return setConfig(parameter, value)
@@ -211,7 +238,7 @@ class PrintImpl implements Print {
         return 'Success'
     }
 
-    class PrintJob {
+    private class PrintJob {
         Integer jobNumber
         String filename
     }
@@ -222,23 +249,8 @@ class PrintImpl implements Print {
         return job
     }
 
-    Boolean authenticate(String username, String password) {
-        Sql db = Database.db
-        GroovyRowResult row = db.firstRow('select password from users where username=:username', [username: username])
-
-        return Crypto.compare(username, password, row?.get('password')?.toString())
-    }
-
-    String authenticate(String sessionId) {
-        Sql db = Database.db
-        GroovyRowResult row = db.firstRow('select username from users where sessionId=:sessionId and ' +
-                'expiration >= :now',
-                [sessionId: sessionId, now: new Timestamp(System.currentTimeMillis())])
-        return row?.get('username')
-    }
-
     String startSession(String username, String password) {
-        if (authenticate(username, password)) {
+        if (auth.authenticate(username, password)) {
             log.info 'user ' + username + ' started a new session'
             String sessionId = Crypto.generateSessionId()
             Timestamp expiration = new Timestamp(System.currentTimeMillis() + 1800 * 1000)
